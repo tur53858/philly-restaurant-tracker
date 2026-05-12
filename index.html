@@ -3,23 +3,23 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Mise — Philly Restaurant Tracker</title>
+  <title>The Walk-In — Philly Restaurant Tracker</title>
 
   <!-- Bootstrap 5.3.3 CSS -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <!-- FontAwesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-  <!-- Fonts: editorial serif + utilitarian mono -->
+  <!-- Fonts: blackletter for masthead + serif body + utilitarian mono -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,800;9..144,900&family=UnifrakturCook:wght@700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 
   <style>
     :root {
       --ink: #1a1612;
       --paper: #f5f1ea;
       --paper-2: #ebe5d9;
-      --accent: #c0392b;     /* deep red — anniversary-dinner energy */
+      --accent: #c0392b;     /* deep red */
       --muted: #8a8378;
       --line: #d4cbb8;
     }
@@ -37,62 +37,77 @@
 
     .mono { font-family: 'JetBrains Mono', monospace; font-size: 0.78rem; letter-spacing: 0.04em; text-transform: uppercase; }
 
-    /* Masthead */
+    /* ── Masthead — NYT-style newspaper banner ── */
     .masthead {
-      border-bottom: 2px solid var(--ink);
-      padding: 1.25rem 0 0;
+      border-bottom: 3px double var(--ink);
       background: var(--paper);
+      padding: 1.5rem 2rem 0;
+      text-align: center;
     }
-    .masthead-inner {
+
+    /* Top line — date | volume */
+    .masthead-top {
       display: flex;
       justify-content: space-between;
-      align-items: baseline;
-      padding: 0 2rem;
-    }
-    .masthead h1 {
-      font-family: 'Fraunces', serif;
-      font-weight: 800;
-      font-size: clamp(2.5rem, 6vw, 4.5rem);
-      letter-spacing: -0.03em;
-      margin: 0;
-      line-height: 1;
-      font-style: italic;
-    }
-    .masthead h1 .amp {
-      color: var(--accent);
-      font-style: normal;
-    }
-    .masthead .sub {
-      color: var(--muted);
-      font-size: 0.85rem;
-    }
-    .issue-line {
-      display: flex;
-      justify-content: space-between;
-      padding: 0.5rem 2rem 0;
-      border-top: 1px solid var(--line);
+      align-items: center;
+      padding-bottom: 0.75rem;
+      border-bottom: 1px solid var(--line);
       color: var(--muted);
     }
 
-    /* Tab navigation */
+    /* Title — gigantic blackletter, centered, breathing room */
+    .masthead-title {
+      font-family: 'UnifrakturCook', 'Fraunces', serif;
+      font-weight: 700;
+      font-size: clamp(3rem, 9vw, 6rem);
+      line-height: 1;
+      letter-spacing: -0.01em;
+      margin: 1.5rem 0 0.75rem;
+      color: var(--ink);
+    }
+
+    /* Subtitle — small caps tagline beneath */
+    .masthead-sub {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: var(--muted);
+      padding-bottom: 1.25rem;
+    }
+
+    /* Bottom line — curator | count */
+    .masthead-bottom {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.75rem 0;
+      border-top: 1px solid var(--ink);
+      color: var(--muted);
+    }
+
+    /* ── Tabs ── */
     .tabs {
       display: flex;
+      justify-content: center;
+      gap: 4rem;
       padding: 0 2rem;
-      gap: 2rem;
       border-bottom: 1px solid var(--line);
-      margin-top: 1rem;
+      background: var(--paper);
     }
     .tab {
       background: none;
       border: none;
-      padding: 1rem 0;
+      padding: 1.25rem 0;
       font-family: 'Fraunces', serif;
       font-style: italic;
-      font-size: 1.1rem;
+      font-size: 1.6rem;
+      font-weight: 400;
       color: var(--muted);
       cursor: pointer;
       position: relative;
       transition: color 0.15s;
+      letter-spacing: -0.01em;
     }
     .tab:hover { color: var(--ink); }
     .tab.active {
@@ -105,20 +120,11 @@
       bottom: -1px;
       left: 0;
       right: 0;
-      height: 2px;
+      height: 3px;
       background: var(--accent);
     }
-    .tab .tab-num {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 0.65rem;
-      letter-spacing: 0.1em;
-      vertical-align: super;
-      margin-right: 0.3rem;
-      color: var(--accent);
-      font-style: normal;
-    }
 
-    /* Main content area */
+    /* ── Main content ── */
     main {
       padding: 3rem 2rem 5rem;
       max-width: 900px;
@@ -129,7 +135,6 @@
     .view { display: none; }
     .view.active { display: block; }
 
-    /* Section heading */
     .section-h {
       font-weight: 600;
       font-size: 1.5rem;
@@ -146,7 +151,7 @@
       letter-spacing: 0.1em;
     }
 
-    /* Form fields */
+    /* ── Form ── */
     .form-label {
       font-family: 'JetBrains Mono', monospace;
       font-size: 0.7rem;
@@ -174,23 +179,17 @@
     }
     .form-control::placeholder { color: var(--muted); font-style: italic; }
 
-    /* Star rating */
     .star-rating {
       display: flex;
       gap: 0.5rem;
       font-size: 1.5rem;
       cursor: pointer;
     }
-    .star-rating i {
-      color: var(--line);
-      transition: color 0.15s;
-    }
+    .star-rating i { color: var(--line); transition: color 0.15s; }
     .star-rating i.active { color: var(--accent); }
 
-    /* Toggle for would_return */
     .toggle-group {
       display: flex;
-      gap: 0;
       border: 1px solid var(--ink);
       max-width: 300px;
     }
@@ -210,7 +209,6 @@
     .toggle-group button:not(:last-child) { border-right: 1px solid var(--ink); }
     .toggle-group button.active { background: var(--ink); color: var(--paper); }
 
-    /* Primary CTA */
     .btn-primary-custom {
       background: var(--ink);
       color: var(--paper);
@@ -226,7 +224,6 @@
     }
     .btn-primary-custom:hover { background: var(--accent); }
 
-    /* Confirmation toast */
     .toast-confirm {
       position: fixed;
       bottom: 2rem;
@@ -244,9 +241,7 @@
     .toast-confirm.show { transform: translateX(-50%) translateY(0); }
     .toast-confirm .accent { color: var(--accent); margin-right: 0.5rem; }
 
-    /* ── Log view: visit cards ── */
-    /* Layout uses CSS grid with two clearly separated columns:
-       [main content] [actions column for badge + delete] */
+    /* ── Visit cards ── */
     .visit-card {
       border-top: 1px solid var(--line);
       padding: 1.75rem 0;
@@ -281,10 +276,7 @@
       margin: 0 0.25rem;
     }
     .visit-card .stars { color: var(--accent); font-size: 0.95rem; letter-spacing: 0.1em; }
-    .visit-card .dish {
-      font-size: 0.95rem;
-      margin: 0.5rem 0 0;
-    }
+    .visit-card .dish { font-size: 0.95rem; margin: 0.5rem 0 0; }
     .visit-card .dish-label {
       font-family: 'JetBrains Mono', monospace;
       font-size: 0.65rem;
@@ -294,7 +286,6 @@
       margin-right: 0.4rem;
     }
 
-    /* Actions column — badge stacks above delete, no overlap */
     .visit-actions {
       display: flex;
       flex-direction: column;
@@ -328,7 +319,6 @@
     .visit-card:hover .delete-btn { opacity: 1; }
     .delete-btn:hover { color: var(--accent); }
 
-    /* Empty state */
     .empty {
       text-align: center;
       padding: 5rem 1rem;
@@ -354,9 +344,10 @@
     }
 
     @media (max-width: 700px) {
-      .visit-card {
-        grid-template-columns: 1fr;
-      }
+      .masthead-top, .masthead-bottom { font-size: 0.65rem; }
+      .tabs { gap: 2rem; }
+      .tab { font-size: 1.3rem; }
+      .visit-card { grid-template-columns: 1fr; }
       .visit-actions {
         flex-direction: row;
         align-items: center;
@@ -368,35 +359,29 @@
 </head>
 <body>
 
-  <!-- Masthead -->
+  <!-- ── Masthead ── -->
   <header class="masthead">
-    <div class="masthead-inner">
-      <div>
-        <h1>Mise <span class="amp">·</span> <em>en place</em></h1>
-        <div class="sub mono">A field journal of philadelphia dining</div>
-      </div>
-      <div class="text-end">
-        <div class="mono" style="color: var(--muted);">Vol. I</div>
-        <div class="mono" style="color: var(--muted);" id="todays-date">—</div>
-      </div>
+    <div class="masthead-top mono">
+      <span id="todays-date">—</span>
+      <span>Vol. I · No. 01</span>
     </div>
-    <div class="issue-line mono">
+
+    <h1 class="masthead-title">The Walk-In</h1>
+    <div class="masthead-sub">A field journal of Philadelphia dining</div>
+
+    <div class="masthead-bottom mono">
       <span>Curated by Max Perry</span>
       <span id="visit-count">0 visits logged</span>
     </div>
-
-    <!-- Tabs -->
-    <nav class="tabs">
-      <button class="tab active" data-view="log">
-        <span class="tab-num">01</span><em>Log a visit</em>
-      </button>
-      <button class="tab" data-view="list">
-        <span class="tab-num">02</span><em>The log</em>
-      </button>
-    </nav>
   </header>
 
-  <!-- LOG-A-VISIT VIEW -->
+  <!-- ── Tabs ── -->
+  <nav class="tabs">
+    <button class="tab active" data-view="log"><em>Log a visit</em></button>
+    <button class="tab" data-view="list"><em>The log</em></button>
+  </nav>
+
+  <!-- ── Log-a-visit view ── -->
   <main id="view-log" class="view active">
     <h2 class="section-h">Log a visit <span class="count mono">New entry</span></h2>
 
@@ -491,40 +476,32 @@
     </form>
   </main>
 
-  <!-- LOG-LIST VIEW -->
+  <!-- ── The Log view ── -->
   <main id="view-list" class="view log-view">
     <h2 class="section-h">The log <span class="count mono" id="log-count">— · 0 entries</span></h2>
     <div id="visits-list"></div>
   </main>
 
-  <!-- Toast for confirmation -->
   <div class="toast-confirm" id="toast">
     <span class="accent">✓</span><span id="toast-msg">Visit logged.</span>
   </div>
 
-  <!-- jQuery -->
   <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 
   <script>
-    // ───── In-memory data store (Week 1: no backend yet) ─────
     let visits = [];
     let nextVisitId = 1;
 
-    // ───── Setup on page load ─────
     $(document).ready(function() {
-      // Set today's date in masthead and form default
       const today = new Date();
       const dateStr = today.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
       $('#todays-date').text(dateStr);
       $('#visit-date').val(today.toISOString().split('T')[0]);
 
-      // Tab switching
       $('.tab').on('click', function() {
-        const view = $(this).data('view');
-        switchView(view);
+        switchView($(this).data('view'));
       });
 
-      // Star rating
       $('#star-rating i').on('click', function() {
         const val = parseInt($(this).data('value'));
         $('#rating').val(val);
@@ -538,14 +515,12 @@
         });
       });
 
-      // Would-return toggle
       $('#return-toggle button').on('click', function() {
         $('#return-toggle button').removeClass('active');
         $(this).addClass('active');
         $('#would-return').val($(this).data('value'));
       });
 
-      // Form submit
       $('#visit-form').on('submit', function(e) {
         e.preventDefault();
         addVisit();
@@ -554,7 +529,6 @@
       renderVisits();
     });
 
-    // ───── View switching ─────
     function switchView(viewName) {
       $('.tab').removeClass('active');
       $('.tab[data-view="' + viewName + '"]').addClass('active');
@@ -566,7 +540,6 @@
       }
     }
 
-    // ───── Add a visit ─────
     function addVisit() {
       if (!$('#rating').val()) {
         alert('Pick a rating.');
@@ -599,7 +572,6 @@
       showToast('Visit logged. View it in the log →', () => switchView('list'));
     }
 
-    // ───── Reset form ─────
     function resetForm() {
       $('#visit-form')[0].reset();
       $('#visit-date').val(new Date().toISOString().split('T')[0]);
@@ -609,7 +581,6 @@
       $('#return-toggle button').removeClass('active');
     }
 
-    // ───── Toast ─────
     function showToast(msg, onClick) {
       const $toast = $('#toast');
       $('#toast-msg').text(msg);
@@ -618,7 +589,6 @@
       setTimeout(() => $toast.removeClass('show'), 3500);
     }
 
-    // ───── Render the log ─────
     function renderVisits() {
       const $list = $('#visits-list');
       $list.empty();
@@ -673,14 +643,12 @@
       });
     }
 
-    // ───── Delete a visit ─────
     function deleteVisit(id) {
       if (!confirm('Remove this entry from the log?')) return;
       visits = visits.filter(function(v) { return v.visit_id !== id; });
       renderVisits();
     }
 
-    // ───── Escape HTML to prevent XSS ─────
     function escapeHtml(str) {
       if (!str) return '';
       return String(str)
