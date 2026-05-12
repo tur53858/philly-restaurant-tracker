@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mise — Philly Restaurant Tracker</title>
+
+  <!-- Bootstrap 5.3.3 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- FontAwesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <!-- Fonts: editorial serif + utilitarian mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --ink: #1a1612;
+      --paper: #f5f1ea;
+      --paper-2: #ebe5d9;
+      --accent: #c0392b;     /* deep red — anniversary-dinner energy */
+      --muted: #8a8378;
+      --line: #d4cbb8;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      font-family: 'Fraunces', Georgia, serif;
+      background: var(--paper);
+      color: var(--ink);
+      margin: 0;
+      padding: 0;
+      font-feature-settings: 'ss01', 'ss02';
+    }
+
+    .mono { font-family: 'JetBrains Mono', monospace; font-size: 0.78rem; letter-spacing: 0.04em; text-transform: uppercase; }
+
+    /* Masthead */
+    .masthead {
+      border-bottom: 2px solid var(--ink);
+      padding: 1.25rem 0 0;
+      background: var(--paper);
+    }
+    .masthead-inner {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      padding: 0 2rem;
+    }
+    .masthead h1 {
+      font-family: 'Fraunces', serif;
+      font-weight: 800;
+      font-size: clamp(2.5rem, 6vw, 4.5rem);
+      letter-spacing: -0.03em;
+      margin: 0;
+      line-height: 1;
+      font-style: italic;
+    }
+    .masthead h1 .amp {
+      color: var(--accent);
+      font-style: normal;
+    }
+    .masthead .sub {
+      color: var(--muted);
+      font-size: 0.85rem;
+    }
+    .issue-line {
+      display: flex;
+      justify-content: space-between;
+      padding: 0.5rem 2rem 0;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+    }
+
+    /* Tab navigation */
+    .tabs {
+      display: flex;
+      padding: 0 2rem;
+      gap: 2rem;
+      border-bottom: 1px solid var(--line);
+      margin-top: 1rem;
+    }
+    .tab {
+      background: none;
+      border: none;
+      padding: 1rem 0;
+      font-family: 'Fraunces', serif;
+      font-style: italic;
+      font-size: 1.1rem;
+      color: var(--muted);
+      cursor: pointer;
+      position: relative;
+      transition: color 0.15s;
+    }
+    .tab:hover { color: var(--ink); }
+    .tab.active {
+      color: var(--ink);
+      font-weight: 600;
+    }
+    .tab.active::after {
+      content: "";
+      position: absolute;
+      bottom: -1px;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: var(--accent);
+    }
+    .tab .tab-num {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.1em;
+      vertical-align: super;
+      margin-right: 0.3rem;
+      color: var(--accent);
+      font-style: normal;
+    }
+
+    /* Main content area */
+    main {
+      padding: 3rem 2rem 5rem;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    main.log-view { max-width: 1100px; }
+
+    .view { display: none; }
+    .view.active { display: block; }
+
+    /* Section heading */
+    .section-h {
+      font-weight: 600;
+      font-size: 1.5rem;
+      margin: 0 0 1.5rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 1px solid var(--ink);
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+    }
+    .section-h .count {
+      font-size: 0.75rem;
+      color: var(--muted);
+      letter-spacing: 0.1em;
+    }
+
+    /* Form fields */
+    .form-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.7rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 0.4rem;
+    }
+
+    .form-control, .form-select {
+      background: transparent;
+      border: none;
+      border-bottom: 1px solid var(--line);
+      border-radius: 0;
+      padding: 0.5rem 0;
+      font-family: 'Fraunces', serif;
+      font-size: 1rem;
+      color: var(--ink);
+    }
+    .form-control:focus, .form-select:focus {
+      background: transparent;
+      border-color: var(--accent);
+      box-shadow: none;
+      outline: none;
+    }
+    .form-control::placeholder { color: var(--muted); font-style: italic; }
+
+    /* Star rating */
+    .star-rating {
+      display: flex;
+      gap: 0.5rem;
+      font-size: 1.5rem;
+      cursor: pointer;
+    }
+    .star-rating i {
+      color: var(--line);
+      transition: color 0.15s;
+    }
+    .star-rating i.active { color: var(--accent); }
+
+    /* Toggle for would_return */
+    .toggle-group {
+      display: flex;
+      gap: 0;
+      border: 1px solid var(--ink);
+      max-width: 300px;
+    }
+    .toggle-group button {
+      flex: 1;
+      padding: 0.6rem;
+      background: transparent;
+      border: none;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all 0.15s;
+      color: var(--ink);
+    }
+    .toggle-group button:not(:last-child) { border-right: 1px solid var(--ink); }
+    .toggle-group button.active { background: var(--ink); color: var(--paper); }
+
+    /* Primary CTA */
+    .btn-primary-custom {
+      background: var(--ink);
+      color: var(--paper);
+      border: none;
+      padding: 1rem 2rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.8rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      margin-top: 1.5rem;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .btn-primary-custom:hover { background: var(--accent); }
+
+    /* Confirmation toast */
+    .toast-confirm {
+      position: fixed;
+      bottom: 2rem;
+      left: 50%;
+      transform: translateX(-50%) translateY(150%);
+      background: var(--ink);
+      color: var(--paper);
+      padding: 1rem 2rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.8rem;
+      letter-spacing: 0.1em;
+      transition: transform 0.3s;
+      z-index: 1000;
+    }
+    .toast-confirm.show { transform: translateX(-50%) translateY(0); }
+    .toast-confirm .accent { color: var(--accent); margin-right: 0.5rem; }
+
+    /* ── Log view: visit cards ── */
+    /* Layout uses CSS grid with two clearly separated columns:
+       [main content] [actions column for badge + delete] */
+    .visit-card {
+      border-top: 1px solid var(--line);
+      padding: 1.75rem 0;
+      display: grid;
+      grid-template-columns: 1fr 140px;
+      gap: 2rem;
+      align-items: start;
+    }
+    .visit-card:last-child { border-bottom: 1px solid var(--line); }
+    .visit-card .place {
+      font-size: 1.6rem;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      margin: 0 0 0.25rem;
+      line-height: 1.1;
+    }
+    .visit-card .place .num {
+      color: var(--accent);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.7rem;
+      vertical-align: super;
+      margin-right: 0.5rem;
+    }
+    .visit-card .meta {
+      color: var(--muted);
+      font-size: 0.85rem;
+      font-style: italic;
+      margin-bottom: 0.75rem;
+    }
+    .visit-card .meta span:not(:last-child)::after {
+      content: " · ";
+      margin: 0 0.25rem;
+    }
+    .visit-card .stars { color: var(--accent); font-size: 0.95rem; letter-spacing: 0.1em; }
+    .visit-card .dish {
+      font-size: 0.95rem;
+      margin: 0.5rem 0 0;
+    }
+    .visit-card .dish-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-right: 0.4rem;
+    }
+
+    /* Actions column — badge stacks above delete, no overlap */
+    .visit-actions {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 0.75rem;
+    }
+    .return-badge {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 0.25rem 0.6rem;
+      border: 1px solid var(--ink);
+      white-space: nowrap;
+    }
+    .return-badge.yes { background: var(--ink); color: var(--paper); }
+    .return-badge.no { color: var(--muted); border-color: var(--line); }
+    .delete-btn {
+      background: none;
+      border: none;
+      color: var(--muted);
+      cursor: pointer;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.7rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 0;
+      opacity: 0;
+      transition: opacity 0.15s, color 0.15s;
+    }
+    .visit-card:hover .delete-btn { opacity: 1; }
+    .delete-btn:hover { color: var(--accent); }
+
+    /* Empty state */
+    .empty {
+      text-align: center;
+      padding: 5rem 1rem;
+      color: var(--muted);
+      font-style: italic;
+    }
+    .empty .icon {
+      font-size: 2rem;
+      margin-bottom: 1rem;
+      color: var(--line);
+    }
+    .empty .cta-link {
+      color: var(--accent);
+      text-decoration: underline;
+      cursor: pointer;
+      font-style: normal;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-top: 1rem;
+      display: inline-block;
+    }
+
+    @media (max-width: 700px) {
+      .visit-card {
+        grid-template-columns: 1fr;
+      }
+      .visit-actions {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+      }
+      .delete-btn { opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Masthead -->
+  <header class="masthead">
+    <div class="masthead-inner">
+      <div>
+        <h1>Mise <span class="amp">·</span> <em>en place</em></h1>
+        <div class="sub mono">A field journal of philadelphia dining</div>
+      </div>
+      <div class="text-end">
+        <div class="mono" style="color: var(--muted);">Vol. I</div>
+        <div class="mono" style="color: var(--muted);" id="todays-date">—</div>
+      </div>
+    </div>
+    <div class="issue-line mono">
+      <span>Curated by Max Perry</span>
+      <span id="visit-count">0 visits logged</span>
+    </div>
+
+    <!-- Tabs -->
+    <nav class="tabs">
+      <button class="tab active" data-view="log">
+        <span class="tab-num">01</span><em>Log a visit</em>
+      </button>
+      <button class="tab" data-view="list">
+        <span class="tab-num">02</span><em>The log</em>
+      </button>
+    </nav>
+  </header>
+
+  <!-- LOG-A-VISIT VIEW -->
+  <main id="view-log" class="view active">
+    <h2 class="section-h">Log a visit <span class="count mono">New entry</span></h2>
+
+    <form id="visit-form">
+
+      <div class="mb-3">
+        <div class="form-label">Restaurant</div>
+        <input type="text" class="form-control" id="name" placeholder="e.g. Vetri" required>
+      </div>
+
+      <div class="row">
+        <div class="col-md-6 mb-3">
+          <div class="form-label">Neighborhood</div>
+          <input type="text" class="form-control" id="neighborhood" placeholder="Rittenhouse" required>
+        </div>
+        <div class="col-md-6 mb-3">
+          <div class="form-label">Cuisine</div>
+          <input type="text" class="form-control" id="cuisine" placeholder="Italian" required>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-md-6 mb-3">
+          <div class="form-label">Visit date</div>
+          <input type="date" class="form-control" id="visit-date" required>
+        </div>
+        <div class="col-md-6 mb-3">
+          <div class="form-label">Price tier</div>
+          <select class="form-select" id="price-tier" required>
+            <option value="">—</option>
+            <option value="1">$ — under 25</option>
+            <option value="2">$$ — 25 to 50</option>
+            <option value="3">$$$ — 50 to 100</option>
+            <option value="4">$$$$ — 100+</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="mb-3">
+        <div class="form-label">Occasion</div>
+        <select class="form-select" id="occasion" required>
+          <option value="">—</option>
+          <option>Casual</option>
+          <option>Date night</option>
+          <option>Anniversary</option>
+          <option>Birthday</option>
+          <option>With friends</option>
+          <option>Solo</option>
+          <option>Work</option>
+        </select>
+      </div>
+
+      <div class="mb-3">
+        <div class="form-label">Rating</div>
+        <div class="star-rating" id="star-rating">
+          <i class="fa-regular fa-star" data-value="1"></i>
+          <i class="fa-regular fa-star" data-value="2"></i>
+          <i class="fa-regular fa-star" data-value="3"></i>
+          <i class="fa-regular fa-star" data-value="4"></i>
+          <i class="fa-regular fa-star" data-value="5"></i>
+        </div>
+        <input type="hidden" id="rating" required>
+      </div>
+
+      <div class="mb-3">
+        <div class="form-label">Would you return?</div>
+        <div class="toggle-group" id="return-toggle">
+          <button type="button" data-value="true">Yes</button>
+          <button type="button" data-value="false">No</button>
+        </div>
+        <input type="hidden" id="would-return">
+      </div>
+
+      <div class="mb-3">
+        <div class="form-label">Dish ordered</div>
+        <input type="text" class="form-control" id="dish-ordered" placeholder="Spinach gnocchi">
+      </div>
+
+      <div class="mb-3">
+        <div class="form-label">Next time, try</div>
+        <input type="text" class="form-control" id="next-time" placeholder="The tasting menu">
+      </div>
+
+      <div class="mb-3">
+        <div class="form-label">Notes</div>
+        <textarea class="form-control" id="notes" rows="2" placeholder="The wine pairing was extraordinary..."></textarea>
+      </div>
+
+      <button type="submit" class="btn-primary-custom">
+        <i class="fa-solid fa-feather-pointed me-2"></i> Log this visit
+      </button>
+    </form>
+  </main>
+
+  <!-- LOG-LIST VIEW -->
+  <main id="view-list" class="view log-view">
+    <h2 class="section-h">The log <span class="count mono" id="log-count">— · 0 entries</span></h2>
+    <div id="visits-list"></div>
+  </main>
+
+  <!-- Toast for confirmation -->
+  <div class="toast-confirm" id="toast">
+    <span class="accent">✓</span><span id="toast-msg">Visit logged.</span>
+  </div>
+
+  <!-- jQuery -->
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
+  <script>
+    // ───── In-memory data store (Week 1: no backend yet) ─────
+    let visits = [];
+    let nextVisitId = 1;
+
+    // ───── Setup on page load ─────
+    $(document).ready(function() {
+      // Set today's date in masthead and form default
+      const today = new Date();
+      const dateStr = today.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+      $('#todays-date').text(dateStr);
+      $('#visit-date').val(today.toISOString().split('T')[0]);
+
+      // Tab switching
+      $('.tab').on('click', function() {
+        const view = $(this).data('view');
+        switchView(view);
+      });
+
+      // Star rating
+      $('#star-rating i').on('click', function() {
+        const val = parseInt($(this).data('value'));
+        $('#rating').val(val);
+        $('#star-rating i').each(function() {
+          const iconVal = parseInt($(this).data('value'));
+          if (iconVal <= val) {
+            $(this).removeClass('fa-regular').addClass('fa-solid active');
+          } else {
+            $(this).removeClass('fa-solid active').addClass('fa-regular');
+          }
+        });
+      });
+
+      // Would-return toggle
+      $('#return-toggle button').on('click', function() {
+        $('#return-toggle button').removeClass('active');
+        $(this).addClass('active');
+        $('#would-return').val($(this).data('value'));
+      });
+
+      // Form submit
+      $('#visit-form').on('submit', function(e) {
+        e.preventDefault();
+        addVisit();
+      });
+
+      renderVisits();
+    });
+
+    // ───── View switching ─────
+    function switchView(viewName) {
+      $('.tab').removeClass('active');
+      $('.tab[data-view="' + viewName + '"]').addClass('active');
+      $('.view').removeClass('active');
+      if (viewName === 'log') {
+        $('#view-log').addClass('active');
+      } else {
+        $('#view-list').addClass('active');
+      }
+    }
+
+    // ───── Add a visit ─────
+    function addVisit() {
+      if (!$('#rating').val()) {
+        alert('Pick a rating.');
+        return;
+      }
+      if (!$('#would-return').val()) {
+        alert('Would you return? Yes or no.');
+        return;
+      }
+
+      const visit = {
+        visit_id: nextVisitId++,
+        name: $('#name').val().trim(),
+        neighborhood: $('#neighborhood').val().trim(),
+        cuisine: $('#cuisine').val().trim(),
+        visit_date: $('#visit-date').val(),
+        price_tier: parseInt($('#price-tier').val()),
+        occasion: $('#occasion').val(),
+        rating: parseInt($('#rating').val()),
+        would_return: $('#would-return').val() === 'true',
+        dish_ordered: $('#dish-ordered').val().trim(),
+        next_time_try: $('#next-time').val().trim(),
+        notes: $('#notes').val().trim(),
+        created_at: new Date().toISOString()
+      };
+
+      visits.unshift(visit);
+      resetForm();
+      renderVisits();
+      showToast('Visit logged. View it in the log →', () => switchView('list'));
+    }
+
+    // ───── Reset form ─────
+    function resetForm() {
+      $('#visit-form')[0].reset();
+      $('#visit-date').val(new Date().toISOString().split('T')[0]);
+      $('#rating').val('');
+      $('#would-return').val('');
+      $('#star-rating i').removeClass('fa-solid active').addClass('fa-regular');
+      $('#return-toggle button').removeClass('active');
+    }
+
+    // ───── Toast ─────
+    function showToast(msg, onClick) {
+      const $toast = $('#toast');
+      $('#toast-msg').text(msg);
+      $toast.addClass('show');
+      if (onClick) $toast.off('click').on('click', onClick).css('cursor', 'pointer');
+      setTimeout(() => $toast.removeClass('show'), 3500);
+    }
+
+    // ───── Render the log ─────
+    function renderVisits() {
+      const $list = $('#visits-list');
+      $list.empty();
+
+      $('#visit-count').text(visits.length + (visits.length === 1 ? ' visit logged' : ' visits logged'));
+      $('#log-count').text('— · ' + visits.length + (visits.length === 1 ? ' entry' : ' entries'));
+
+      if (visits.length === 0) {
+        $list.html(`
+          <div class="empty">
+            <div class="icon"><i class="fa-regular fa-bookmark"></i></div>
+            <div>No entries yet.</div>
+            <a class="cta-link" onclick="switchView('log')">Log your first visit →</a>
+          </div>
+        `);
+        return;
+      }
+
+      visits.forEach(function(v, idx) {
+        const stars = '★'.repeat(v.rating) + '☆'.repeat(5 - v.rating);
+        const priceStr = '$'.repeat(v.price_tier);
+        const num = String(visits.length - idx).padStart(3, '0');
+        const formattedDate = new Date(v.visit_date + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+
+        const card = `
+          <article class="visit-card" data-id="${v.visit_id}">
+            <div>
+              <h3 class="place"><span class="num">№${num}</span>${escapeHtml(v.name)}</h3>
+              <div class="meta">
+                <span>${escapeHtml(v.neighborhood)}</span>
+                <span>${escapeHtml(v.cuisine)}</span>
+                <span>${priceStr}</span>
+                <span>${escapeHtml(v.occasion)}</span>
+                <span>${formattedDate}</span>
+              </div>
+              <div class="stars">${stars}</div>
+              ${v.dish_ordered ? `<p class="dish"><span class="dish-label">Ordered</span>${escapeHtml(v.dish_ordered)}</p>` : ''}
+              ${v.next_time_try ? `<p class="dish"><span class="dish-label">Next time</span>${escapeHtml(v.next_time_try)}</p>` : ''}
+              ${v.notes ? `<p class="dish" style="font-style: italic; color: var(--muted);">"${escapeHtml(v.notes)}"</p>` : ''}
+            </div>
+            <div class="visit-actions">
+              <div class="return-badge ${v.would_return ? 'yes' : 'no'}">
+                ${v.would_return ? '↻ Returning' : '✗ Pass'}
+              </div>
+              <button class="delete-btn" onclick="deleteVisit(${v.visit_id})">
+                <i class="fa-regular fa-trash-can"></i> remove
+              </button>
+            </div>
+          </article>
+        `;
+        $list.append(card);
+      });
+    }
+
+    // ───── Delete a visit ─────
+    function deleteVisit(id) {
+      if (!confirm('Remove this entry from the log?')) return;
+      visits = visits.filter(function(v) { return v.visit_id !== id; });
+      renderVisits();
+    }
+
+    // ───── Escape HTML to prevent XSS ─────
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+  </script>
+
+</body>
+</html>
