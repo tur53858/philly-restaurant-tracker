@@ -1,107 +1,111 @@
-# Data Model Worksheet — Philly Restaurant Tracker
+# Data Model — Philly Restaurant Tracker
 
-Fill this out **before writing any backend code.** Locking the schema down now saves you from painful migrations in week 4.
+Locked-in schema, v1. Refactor only if you hit a real wall.
 
 ---
 
-## Step 1: Entities
-
-These are the "nouns" of your app. For the restaurant tracker, I'd suggest starting with three:
-
-### `restaurants`
-A unique place. You only enter a restaurant once, even if you visit it 10 times.
-
-| Column | Type | Notes |
-|---|---|---|
-| `restaurant_id` | INT, PRIMARY KEY, AUTO_INCREMENT | |
-| `name` | VARCHAR(100) | "Vetri", "Royal Sushi" |
-| `neighborhood` | VARCHAR(50) | "Rittenhouse", "Fishtown" |
-| `cuisine` | VARCHAR(50) | "Italian", "Sushi", "American" |
-| `price_tier` | INT | 1–4 ($ to $$$$) |
-| `address` | VARCHAR(200) | optional |
-| `created_at` | DATETIME | DEFAULT CURRENT_TIMESTAMP |
-
-### `visits`
-A single dining experience. One restaurant → many visits.
-
-| Column | Type | Notes |
-|---|---|---|
-| `visit_id` | INT, PRIMARY KEY, AUTO_INCREMENT | |
-| `restaurant_id` | INT, FOREIGN KEY → restaurants | |
-| `user_id` | INT, FOREIGN KEY → users | |
-| `visit_date` | DATE | |
-| `rating` | INT | 1–5 |
-| `occasion` | VARCHAR(50) | "anniversary", "casual", "date", "with friends" |
-| `notes` | TEXT | freeform |
-| `created_at` | DATETIME | DEFAULT CURRENT_TIMESTAMP |
+## Tables
 
 ### `users`
-Same pattern as your MIS3502 to-do app. Even if it's just you for now, build it multi-user from day one.
+Multi-user from day one — same pattern as MIS3502 final. Even though it's just you at launch, the auth + JOIN infrastructure is what makes this a portfolio-worthy project.
 
 | Column | Type | Notes |
 |---|---|---|
 | `user_id` | INT, PRIMARY KEY, AUTO_INCREMENT | |
-| `username` | VARCHAR(50), UNIQUE | |
-| `password_hash` | VARCHAR(255) | bcrypt |
-| `is_admin` | BOOLEAN | DEFAULT FALSE |
-| `created_at` | DATETIME | DEFAULT CURRENT_TIMESTAMP |
+| `username` | VARCHAR(50), UNIQUE, NOT NULL | |
+| `password_hash` | VARCHAR(255), NOT NULL | bcrypt |
+| `is_admin` | BOOLEAN, DEFAULT FALSE | |
+| `created_at` | DATETIME, DEFAULT CURRENT_TIMESTAMP | |
+
+### `restaurants`
+A unique place. Entered once, visited many times.
+
+| Column | Type | Notes |
+|---|---|---|
+| `restaurant_id` | INT, PRIMARY KEY, AUTO_INCREMENT | |
+| `name` | VARCHAR(100), NOT NULL | "Vetri", "Royal Sushi" |
+| `neighborhood` | VARCHAR(50) | "Rittenhouse", "Fishtown", "Old City" |
+| `cuisine` | VARCHAR(50) | "Italian", "Sushi", "American" |
+| `price_tier` | INT | 1–4 (maps to $, $$, $$$, $$$$) |
+| `address` | VARCHAR(200) | optional, freeform for now |
+| `created_at` | DATETIME, DEFAULT CURRENT_TIMESTAMP | |
+
+### `visits`
+One dining experience. The table you'll write to most.
+
+| Column | Type | Notes |
+|---|---|---|
+| `visit_id` | INT, PRIMARY KEY, AUTO_INCREMENT | |
+| `restaurant_id` | INT, FOREIGN KEY → restaurants.restaurant_id, NOT NULL | |
+| `user_id` | INT, FOREIGN KEY → users.user_id, NOT NULL | |
+| `visit_date` | DATE, NOT NULL | |
+| `rating` | INT | 1–5, whole numbers |
+| `occasion` | VARCHAR(50) | "anniversary", "casual", "date night", "with friends" |
+| `would_return` | BOOLEAN | TRUE / FALSE — the single most useful field for filtering |
+| `dish_ordered` | VARCHAR(200) | "veal parm", "omakase 12-piece" |
+| `next_time_try` | VARCHAR(200) | "the cacio e pepe", "the chef's tasting menu" |
+| `notes` | TEXT | freeform |
+| `created_at` | DATETIME, DEFAULT CURRENT_TIMESTAMP | |
 
 ---
 
-## Step 2: Relationships
+## Relationships
 
-- One `restaurant` has many `visits` (linked via `visits.restaurant_id`)
-- One `user` has many `visits` (linked via `visits.user_id`)
-- Many `visits` reference one `restaurant` and one `user`
+- One `restaurant` → many `visits` (via `visits.restaurant_id`)
+- One `user` → many `visits` (via `visits.user_id`)
 
-**Important — same trap as your MIS3502 project:** keep your column names consistent. The user who created a visit is `visits.user_id`, NOT `visits.createdby` or `visits.userid`. Pick a convention and stick with it across all tables.
+**Naming convention — STICK TO THIS:** every foreign key references the primary key with the *exact* same column name. The user who created a visit is `visits.user_id`. Not `userid`, not `createdby`, not `created_by_user`. This is the same trap that bit you in MIS3502. Lock it down now.
 
 ---
 
-## Step 3: The queries you'll write
+## Queries you'll need to write
 
-Sketch these out now. They'll become your Lambda endpoints later.
+### Read
+- All visits for the logged-in user, with restaurant name/neighborhood joined in (homepage list)
+- Visits filtered by neighborhood / cuisine / would_return
+- One visit by ID (for edit screen)
+- All restaurants (for the dropdown when logging a new visit)
 
-**Read queries:**
-- Get all visits for a user (with restaurant info joined in)
-- Get visits filtered by neighborhood / cuisine / occasion
-- Get aggregate stats: avg rating per restaurant, visit count per neighborhood
-
-**Write queries:**
+### Write
 - Insert a new restaurant
 - Insert a new visit
-- Update a visit (fix typos, edit rating)
+- Update a visit
 - Delete a visit
 
-**Admin query (the resume gold):**
-- JOIN users + visits + restaurants → return top 10 restaurants by average rating across all users, with visit count
+### Aggregate (the resume gold)
+- Top-rated restaurants: average rating + visit count per restaurant, sorted DESC
+- Neighborhood breakdown: visit count and avg rating per neighborhood
+- "Would return" hit rate per cuisine
+- **Admin endpoint:** all of the above across ALL users (JOIN users + visits + restaurants), proving you can write multi-table JOINs in production code
 
 ---
 
-## Step 4: Lambda endpoint plan
+## Lambda endpoint plan
 
-| Method | Path | What it does | SQL behind it |
+| Method | Path | Purpose | SQL behind it |
 |---|---|---|---|
-| GET | /visits | List all visits for logged-in user | SELECT … JOIN restaurants |
-| GET | /visits/{id} | Get one visit | SELECT … WHERE visit_id = ? |
+| POST | /login | Auth, return token | SELECT user, verify hash |
+| POST | /signup | New user | INSERT INTO users |
+| GET | /visits | List visits for logged-in user | SELECT … JOIN restaurants WHERE user_id = ? |
+| GET | /visits/{id} | Get one visit | SELECT … JOIN restaurants WHERE visit_id = ? |
 | POST | /visits | Create a visit | INSERT INTO visits |
-| PUT | /visits/{id} | Update a visit | UPDATE visits SET … |
-| DELETE | /visits/{id} | Delete a visit | DELETE FROM visits |
+| PUT | /visits/{id} | Update a visit | UPDATE visits SET … WHERE visit_id = ? |
+| DELETE | /visits/{id} | Delete a visit | DELETE FROM visits WHERE visit_id = ? |
 | GET | /restaurants | List all restaurants | SELECT * FROM restaurants |
-| POST | /restaurants | Add a new restaurant | INSERT INTO restaurants |
-| GET | /admin/top-rated | Admin-only aggregate | SELECT … JOIN … GROUP BY |
-| POST | /login | Auth | SELECT user, verify hash, return token |
+| POST | /restaurants | Add a restaurant | INSERT INTO restaurants |
+| GET | /stats/top-rated | Aggregate stats for current user | SELECT … GROUP BY restaurant_id |
+| GET | /admin/all-stats | Cross-user aggregate (admin only) | SELECT … JOIN users + visits + restaurants |
 
-All of this routes through one Lambda function — same pattern as your MIS3502 final. The router reads `event.httpMethod` and `event.path` and dispatches to a supporting function.
+All routes go through ONE Lambda function. The router reads `event.httpMethod` and `event.path` and dispatches to a supporting function — same pattern as your MIS3502 final.
 
 ---
 
-## Step 5: Sanity check before you start coding
+## Sanity checks before coding
 
-- [ ] Every table has a primary key
-- [ ] Every foreign key column matches the type of the column it references
-- [ ] Column names are consistent across tables (`user_id` everywhere, not `userid` here and `createdby` there)
-- [ ] You can describe in plain English what each endpoint does before opening VS Code
-- [ ] You've written at least one of the JOIN queries out by hand to make sure it works
+- [x] Every table has a primary key
+- [x] Foreign keys use matching column names (`user_id`, `restaurant_id`)
+- [x] No column-name drift across tables
+- [x] Each endpoint has a one-sentence purpose
+- [x] At least one JOIN query sketched out
 
-When all five are checked, you're ready to start building. Don't start before.
+You're cleared to start building. **Week 1 task: frontend form + in-memory list, no backend yet.**
